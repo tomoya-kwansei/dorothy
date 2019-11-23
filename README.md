@@ -21,13 +21,14 @@ mkdir bin
 ```
 
 Then, you can find `compiler` and `cpu`.
-Finally, type follow codes to run script.
 
-````:
+```:test.txt
 func main() {
   return 1 + 2
 }
 ```
+
+Finally, type follow codes to run script.
 
 ```:
 ./compiler test.txt
