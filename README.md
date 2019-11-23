@@ -16,8 +16,25 @@ func main() {
 Clone this repository, enter the directory and type follow command on Terminal to make library.
 ```:
 cd dorothy
+mkdir bin
 ./test.sh
 ```
+
+Then, you can find `compiler` and `cpu`.
+Finally, type follow codes to run script.
+
+````:
+func main() {
+  return 1 + 2
+}
+```
+
+```:
+./compiler test.txt
+./cpu test.bin
+```
+
+
 
 ## Running the tests
 
