@@ -4,19 +4,20 @@ This programming language helps you to expand your project.
 
 ## Getting Started
 
-You can write the follow code to display 'Hello, World!'.
+You can write the follow code to calculate `1+2`.
 ```:
-print("Hello, World!")
+func main() {
+  return 1 + 2
+}
 ```
 
 ### Installing
 
 Clone this repository, enter the directory and type follow command on Terminal to make library.
 ```:
-make lib
+cd dorothy
+./test.sh
 ```
-
-There are header files in ```include/``` and library file ```libdorothy.a``` in ```lib/```.
 
 ## Running the tests
 
