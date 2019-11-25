@@ -7,7 +7,7 @@ function try() {
 }
 
 for script in $(ls script/ | sed s/.txt//g); do
-    ./compiler script/$script.txt $script
+    ./compiler script/$script.txt bin/$script
 done
 
 for bin in $(ls bin/ | sed s/.bin//g); do
