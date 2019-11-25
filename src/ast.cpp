@@ -160,6 +160,11 @@ CallFuncSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>&
     }
     if(functions[_id]) {
         ofs.push_back(Code::makeCode(Code::CALL, functions[_id], 0));
+        if(_args.size() > 0) {
+            for(auto arg: _args) {
+                ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+            }
+        }
         ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
     } else {
         throw CompileError(format("undefined function: %s", _id.c_str()).c_str());
@@ -464,6 +469,11 @@ CallFuncExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>
     }
     if(functions[_id]) {
         ofs.push_back(Code::makeCode(Code::CALL, functions[_id], 0));
+        if(_args.size() > 0) {
+            for(auto arg: _args) {
+                ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+            }
+        }
         ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
     } else {
         throw CompileError(format("undefined function: %s", _id.c_str()).c_str());
