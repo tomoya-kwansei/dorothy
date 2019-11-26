@@ -16,6 +16,7 @@ Expression::print(ostream& os, int tab) {
 void 
 PointerLeftSide::print(ostream& os, int tab) {
     os << "*";
+    _leftside->print(os, tab);
 }
 
 void 
