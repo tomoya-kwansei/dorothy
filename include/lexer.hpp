@@ -3,6 +3,11 @@
 #include <vector>
 #include "token.hpp"
 
+class LexerError: public runtime_error {
+public:
+    LexerError(char *message): runtime_error(message) {}
+};
+
 class Lexer {
     vector<Token> tokens;
 public:

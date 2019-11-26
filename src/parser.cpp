@@ -47,8 +47,7 @@ Parser::parse_block(vector<Token>& tokens) {
     if(consume(tokens, (Token::Type)'{').type == Token::NONE) return NULL;
     while(tokens[_pos].type != (Token::Type)'}') {
         auto st = parse_statement(tokens);
-        if(st)
-            statements.push_back(st);
+        if(st) statements.push_back(st);
         else {
             throw ParseError(format("position: %d", _pos), tokens[_pos]);
         }
@@ -64,6 +63,8 @@ Parser::parse_declvarst(vector<Token>& tokens) {
     if(!decl) {
         return NULL;
     } else {
+        if(consume(tokens, (Token::Type)';').type == Token::NONE)
+            throw ParseError(format("expected ';'"), tokens[_pos]);
         return new DeclVarSt(decl);
     }
 }
@@ -75,6 +76,8 @@ Parser::parse_assignst(vector<Token>& tokens) {
     if(id_token.type != Token::TK_ID || eq_token.type != (Token::Type)'=') return NULL;
     _pos += 2;
     auto exp = parse_expression(tokens);
+    if(consume(tokens, (Token::Type)';').type == Token::NONE)
+        throw ParseError(format("expected ';'"), tokens[_pos]);
     return new AssignSt(new VarLeftSide(id_token.id), exp);
 }
 
@@ -96,6 +99,8 @@ Parser::parse_returnst(vector<Token>& tokens) {
     if(consume(tokens, Token::KW_RETURN).type == Token::NONE) return NULL;
     Expression *exp = parse_expression(tokens);
     if(!exp) throw ParseError(format("exprected 'expression' at %d", _pos), tokens[_pos]);
+    if(consume(tokens, (Token::Type)';').type == Token::NONE)
+        throw ParseError(format("expected ';'"), tokens[_pos]);
     return new ReturnSt(exp);
 }
 
@@ -138,6 +143,8 @@ Parser::parse_callst(vector<Token>& tokens) {
     if(id_token.type != Token::TK_ID || lp.type != (Token::Type)'(') return NULL;
     _pos++;
     vector<Expression *> args = parse_arg(tokens);
+    if(consume(tokens, (Token::Type)';').type == Token::NONE)
+        throw ParseError(format("expected ';'"), tokens[_pos]);
     return new CallFuncSt(id_token.id, args);
 }
 
