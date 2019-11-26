@@ -276,10 +276,34 @@ public:
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
 
-class VarExp: public Expression {
+class RightSide: public Expression {
+public:
+    virtual void print(ostream&, int tab) {}
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
+};
+
+class Access: public RightSide {
+    RightSide *_rightside;
+public:
+    Access(RightSide *rightside):_rightside(rightside) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
+class Variable: public RightSide {
     string _id;
 public:
-    VarExp(string id): _id(id) {}
+    Variable(string id):_id(id) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
+class VarExp: public Expression {
+    RightSide *_rightside;
+public:
+    VarExp(RightSide *rightside): _rightside(rightside) {}
 
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);

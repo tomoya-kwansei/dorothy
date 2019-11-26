@@ -472,19 +472,45 @@ Address::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fu
     ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
 }
 
+void 
+Access::print(ostream& os, int tab) {
+    os << "*";
+    _rightside->print(os, tab);
+}
+
+void 
+Access::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
+    _rightside->compile(ofs, vars, functions);
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
+    ofs.push_back(Code::makeCode(Code::LOAD, 2, 2));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+}
+
+void 
+Variable::print(ostream& os, int tab) {
+    os << _id;
+}
+
+void 
+Variable::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
+    ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHI, vars[_id], 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+}
+
 void
 VarExp::print(ostream& os, int tab) {
-    os << _id;
+    _rightside->print(os, tab);
 }
 
 void
 VarExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
-    ofs.push_back(Code::makeCode("MOVE 2 0"));
-    ofs.push_back(Code::makeCode("PUSHI " + to_string(vars[_id]) + " 0"));
-    ofs.push_back(Code::makeCode("POP 3 0"));
-    ofs.push_back(Code::makeCode("SUB 0 0"));
-    ofs.push_back(Code::makeCode("LOAD 2 2"));
-    ofs.push_back(Code::makeCode("PUSHR 2 0"));
+    _rightside->compile(ofs, vars, functions);
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
+    ofs.push_back(Code::makeCode(Code::LOAD, 2, 2));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
 }
 
 void
