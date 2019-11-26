@@ -19,7 +19,7 @@ mainFunction() {
     call_args.push_back(new IntExp(3));
     vector<Statement*> statements;
     statements.push_back(new DeclVarSt(new DeclVar("a")));
-    statements.push_back(new AssignSt("a", new AddExp(new VarExp("a"), new IntExp(1))));
+    statements.push_back(new AssignSt(new VarLeftSide("a"), new AddExp(new VarExp("a"), new IntExp(1))));
     statements.push_back(new ReturnSt(new CallFuncExp("test", call_args)));
     Block *block = new Block(statements);
 

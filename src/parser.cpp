@@ -75,7 +75,7 @@ Parser::parse_assignst(vector<Token>& tokens) {
     if(id_token.type != Token::TK_ID || eq_token.type != (Token::Type)'=') return NULL;
     _pos += 2;
     auto exp = parse_expression(tokens);
-    return new AssignSt(id_token.id, exp);
+    return new AssignSt(new VarLeftSide(id_token.id), exp);
 }
 
 Statement *

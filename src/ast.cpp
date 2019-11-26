@@ -14,20 +14,31 @@ Expression::print(ostream& os, int tab) {
 }
 
 void 
+VarLeftSide::print(ostream& os, int tab) {
+    os << _id;
+}
+
+void 
+VarLeftSide::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
+    ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHI, vars[_id], 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+}
+
+void 
 AssignSt::print(ostream& os, int tab) {
     Node::addTab(os, tab);
-    os << _id << "=";
+    _leftside->print(os, tab);
+    os << "=";
     _expr->print(os, tab);
     os << endl;
 }
 
 void 
 AssignSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
-    ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
-    ofs.push_back(Code::makeCode(Code::PUSHI, vars[_id], 0));
-    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
-    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
-    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+    _leftside->compile(ofs, vars, functions);
     _expr->compile(ofs, vars, functions);
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));

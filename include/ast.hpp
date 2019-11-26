@@ -60,11 +60,26 @@ public:
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
 
-class AssignSt: public Statement {
+class LeftSide: public Node {
+public:
+    virtual void print(ostream&, int tab) {}
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
+};
+
+class VarLeftSide: public LeftSide {
     string _id;
+public:
+    VarLeftSide(string id): _id(id) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
+class AssignSt: public Statement {
+    LeftSide *_leftside;
     Expression *_expr;
 public:
-    AssignSt(string id, Expression *expr): _id(id), _expr(expr) {}
+    AssignSt(LeftSide *leftside, Expression *expr): _leftside(leftside), _expr(expr) {}
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
