@@ -22,6 +22,8 @@ Lexer::tokenize(string p, int* ppos) {
         if(tokenize_keyword(p, ppos, ">=", Token::TK_GE))       continue;
         if(tokenize_keyword(p, ppos, "==", Token::TK_EQ))       continue;
         if(tokenize_keyword(p, ppos, "!=", Token::TK_NE))       continue;
+        if(tokenize_operator(p, ppos, '&'))                     continue;
+        if(tokenize_operator(p, ppos, ';'))                     continue;
         if(tokenize_operator(p, ppos, '='))                     continue;
         if(tokenize_operator(p, ppos, ','))                     continue;
         if(tokenize_operator(p, ppos, '+'))                     continue;
@@ -35,10 +37,9 @@ Lexer::tokenize(string p, int* ppos) {
         if(tokenize_operator(p, ppos, '}'))                     continue;
         if(tokenize_operator(p, ppos, '('))                     continue;
         if(tokenize_operator(p, ppos, ')'))                     continue;
-        if(tokenize_id(p, ppos))                               continue;
+        if(tokenize_id(p, ppos))                                continue;
         if(tokenize_int(p, ppos))                               continue;
-        cout << format("%c: %s", p[*ppos], p.c_str()) << endl;
-        exit(-1);
+        throw LexerError(format("undefined token: %c", p[*ppos]).data());
     }
 }
 
