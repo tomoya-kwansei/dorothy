@@ -267,6 +267,15 @@ public:
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
 
+class Address: public Expression {
+    string _id;
+public:
+    Address(string id): _id(id) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
 class VarExp: public Expression {
     string _id;
 public:

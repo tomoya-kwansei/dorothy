@@ -42,6 +42,7 @@ private:
     Expression *parse_mul(vector<Token>&);
     Expression *parse_term(vector<Token>&);
     Expression *parse_integer(vector<Token>&);
+    Expression *parse_address(vector<Token>&);
     Expression *parse_variable(vector<Token>&);
     Expression *parse_call(vector<Token>&);
     vector<Expression *> parse_arg(vector<Token>&);

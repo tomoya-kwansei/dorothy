@@ -457,6 +457,20 @@ IntExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fun
     ofs.push_back(Code::makeCode("PUSHI " + to_string(_int_val) + " 0"));
 }
 
+void 
+Address::print(ostream& os, int tab) {
+    os << "&" << _id;
+}
+
+void 
+Address::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
+    ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHI, vars[_id], 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+}
+
 void
 VarExp::print(ostream& os, int tab) {
     os << _id;

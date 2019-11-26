@@ -209,6 +209,7 @@ Expression *
 Parser::parse_term(vector<Token>& tokens) {
     Expression *exp;
     if((exp = parse_call(tokens))) return exp;
+    if((exp = parse_address(tokens))) return exp;
     if((exp = parse_variable(tokens))) return exp;
     if((exp = parse_integer(tokens))) return exp;
     return NULL;
@@ -226,6 +227,14 @@ Parser::parse_integer(vector<Token>& tokens) {
     Token token = consume(tokens, Token::TK_INT);
     if(token.type == 0) return NULL;
     return new IntExp(token.int_val);
+}
+
+Expression *
+Parser::parse_address(vector<Token>& tokens) {
+    if(consume(tokens, (Token::Type)'&').type == Token::NONE) return NULL;
+    Token token = consume(tokens, Token::TK_ID);
+    if(token.type == Token::NONE) throw ParseError("expected <ID>", token);
+    return new Address(token.id);
 }
 
 Expression *
