@@ -69,16 +69,28 @@ Parser::parse_declvarst(vector<Token>& tokens) {
     }
 }
 
+LeftSide *
+Parser::parse_leftside(vector<Token>& tokens) {
+    Token token;
+    if((token = consume(tokens, Token::TK_ID)).type != Token::NONE) {
+        return new VarLeftSide(token.id);
+    } else if(consume(tokens, (Token::Type)'*').type != Token::NONE) {
+        LeftSide *leftside = parse_leftside(tokens);
+        return new PointerLeftSide(leftside);
+    } else {
+        return NULL;
+    }
+}
+
 Statement *
 Parser::parse_assignst(vector<Token>& tokens) {
-    Token id_token = tokens[_pos];
-    Token eq_token = tokens[_pos + 1];
-    if(id_token.type != Token::TK_ID || eq_token.type != (Token::Type)'=') return NULL;
-    _pos += 2;
+    LeftSide *leftside = parse_leftside(tokens);
+    if(!leftside) return NULL;
+    if(consume(tokens, (Token::Type)'=').type == Token::NONE) throw ParseError("expected '='", tokens[_pos]);
     auto exp = parse_expression(tokens);
     if(consume(tokens, (Token::Type)';').type == Token::NONE)
         throw ParseError(format("expected ';'"), tokens[_pos]);
-    return new AssignSt(new VarLeftSide(id_token.id), exp);
+    return new AssignSt(leftside, exp);
 }
 
 Statement *

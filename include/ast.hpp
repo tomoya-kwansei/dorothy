@@ -66,6 +66,15 @@ public:
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
 };
 
+class PointerLeftSide: public LeftSide {
+    LeftSide *_leftside;
+public:
+    PointerLeftSide(LeftSide *leftside): _leftside(leftside) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
 class VarLeftSide: public LeftSide {
     string _id;
 public:

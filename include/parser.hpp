@@ -26,6 +26,8 @@ private:
     DeclVar *parse_declvar(vector<Token>&);
     Block *parse_block(vector<Token>&);
 
+    LeftSide  *parse_leftside(vector<Token>&);
+
     Statement *parse_statement(vector<Token>&);
     Statement *parse_declvarst(vector<Token>&);
     Statement *parse_assignst(vector<Token>&);

@@ -14,6 +14,19 @@ Expression::print(ostream& os, int tab) {
 }
 
 void 
+PointerLeftSide::print(ostream& os, int tab) {
+    os << "*";
+}
+
+void 
+PointerLeftSide::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
+    _leftside->compile(ofs, vars, functions);
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
+    ofs.push_back(Code::makeCode(Code::LOAD, 2, 2));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+}
+
+void 
 VarLeftSide::print(ostream& os, int tab) {
     os << _id;
 }
