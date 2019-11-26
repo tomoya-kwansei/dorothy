@@ -33,7 +33,7 @@ AssignSt::print(ostream& os, int tab) {
     _leftside->print(os, tab);
     os << "=";
     _expr->print(os, tab);
-    os << endl;
+    os << ";" << endl;
 }
 
 void 
@@ -68,7 +68,7 @@ void
 DeclVarSt::print(ostream& os, int tab) {
     Node::addTab(os, tab);
     _decl->print(os, tab);
-    os << endl;
+    os << ";" << endl;
 }
 
 void 
@@ -159,7 +159,7 @@ CallFuncSt::print(ostream& os, int tab) {
             _args[i]->print(os, tab);
         }
     }
-    os << ")" << endl;
+    os << ")" << ";" << endl;
 }
 
 void
@@ -234,7 +234,7 @@ ReturnSt::print(ostream& os, int tab) {
     Node::addTab(os, tab);
     os << "return ";
     _exp->print(os, tab);
-    os << endl;
+    os << ";" << endl;
 }
 
 void
