@@ -210,7 +210,7 @@ Parser::parse_term(vector<Token>& tokens) {
     Expression *exp;
     if((exp = parse_call(tokens))) return exp;
     if((exp = parse_address(tokens))) return exp;
-    if((exp = parse_variable(tokens))) return new VarExp(right);
+    if((exp = parse_variable(tokens))) return new VarExp(exp);
     if((exp = parse_integer(tokens))) return exp;
     return NULL;
 }

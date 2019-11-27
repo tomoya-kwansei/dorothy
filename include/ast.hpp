@@ -301,9 +301,9 @@ public:
 };
 
 class VarExp: public Expression {
-    RightSide *_rightside;
+    Expression *_rightside;
 public:
-    VarExp(RightSide *rightside): _rightside(rightside) {}
+    VarExp(Expression *rightside): _rightside(rightside) {}
 
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
