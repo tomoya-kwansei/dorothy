@@ -283,9 +283,9 @@ public:
 };
 
 class Access: public RightSide {
-    RightSide *_rightside;
+    Expression *_rightside;
 public:
-    Access(RightSide *rightside):_rightside(rightside) {}
+    Access(Expression *rightside):_rightside(rightside) {}
 
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);

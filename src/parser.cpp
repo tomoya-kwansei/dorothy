@@ -208,10 +208,9 @@ Parser::parse_mul(vector<Token>& tokens) {
 Expression *
 Parser::parse_term(vector<Token>& tokens) {
     Expression *exp;
-    RightSide *right;
     if((exp = parse_call(tokens))) return exp;
     if((exp = parse_address(tokens))) return exp;
-    if((right = parse_variable(tokens))) return new VarExp(right);
+    if((exp = parse_variable(tokens))) return new VarExp(right);
     if((exp = parse_integer(tokens))) return exp;
     return NULL;
 }
@@ -238,7 +237,7 @@ Parser::parse_address(vector<Token>& tokens) {
     return new Address(token.id);
 }
 
-RightSide *
+Expression *
 Parser::parse_variable(vector<Token>& tokens) {
     Token token;
     if(consume(tokens, (Token::Type)'*').type != Token::NONE) {
