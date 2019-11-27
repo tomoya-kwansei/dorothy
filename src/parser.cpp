@@ -212,6 +212,14 @@ Parser::parse_term(vector<Token>& tokens) {
     if((exp = parse_address(tokens))) return exp;
     if((exp = parse_variable(tokens))) return new VarExp(exp);
     if((exp = parse_integer(tokens))) return exp;
+    if(consume(tokens, (Token::Type)'(').type != Token::NONE) {
+        exp = parse_expression(tokens);
+        if(consume(tokens, (Token::Type)')').type != Token::NONE) {
+            return exp;
+        } else {
+            throw ParseError("expected ')'", tokens[_pos]);
+        }
+    }
     return NULL;
 }
 
