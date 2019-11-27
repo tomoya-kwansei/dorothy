@@ -207,11 +207,14 @@ Parser::parse_mul(vector<Token>& tokens) {
 
 Expression *
 Parser::parse_term(vector<Token>& tokens) {
+    Token token;
     Expression *exp;
     if((exp = parse_call(tokens))) return exp;
     if((exp = parse_address(tokens))) return exp;
-    if((exp = parse_variable(tokens))) return new VarExp(exp);
+    if((exp = parse_variable(tokens))) return exp;
     if((exp = parse_integer(tokens))) return exp;
+    if((token = consume(tokens, Token::TK_ID)).type != Token::NONE) 
+        return new VarExp(new Variable(token.id));
     if(consume(tokens, (Token::Type)'(').type != Token::NONE) {
         exp = parse_expression(tokens);
         if(consume(tokens, (Token::Type)')').type != Token::NONE) {
@@ -249,9 +252,7 @@ Expression *
 Parser::parse_variable(vector<Token>& tokens) {
     Token token;
     if(consume(tokens, (Token::Type)'*').type != Token::NONE) {
-        return new Access(parse_variable(tokens));
-    } else if((token = consume(tokens, Token::TK_ID)).type != Token::NONE) {
-        return new Variable(token.id);
+        return new Access(parse_expression(tokens));
     } else {
         return NULL;
     }
