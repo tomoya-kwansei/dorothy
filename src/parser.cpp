@@ -226,7 +226,6 @@ Parser::parse_term(vector<Token>& tokens) {
     if((exp = parse_variable(tokens))) return exp;
     if((exp = parse_integer(tokens))) return exp;
     if((token = consume(tokens, Token::TK_ID)).type != Token::NONE) {
-        cout << "variable: " << tokens[_pos].type << " at " << _pos << endl;
         return new VarExp(new Variable(token.id));
     }
     if(consume(tokens, (Token::Type)'(').type != Token::NONE) {
