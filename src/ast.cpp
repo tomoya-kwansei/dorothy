@@ -136,14 +136,14 @@ WhileSt::print(ostream& os, int tab) {
 void 
 WhileSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
     int jumpToBottom = 0;
-    int top = ofs.size() - 1;
+    int top = ofs.size() + 3;
     _cond->compile(ofs, vars, functions);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::JNE, 0, 0));
     jumpToBottom = ofs.size() - 1;
     _body->compile(ofs, vars, functions);
     ofs.push_back(Code::makeCode(Code::JMP, top, 0));
-    ofs[jumpToBottom].op1 = ofs.size() - 1 + 4;
+    ofs[jumpToBottom].op1 = ofs.size() + 3;
 }
 
 void 
