@@ -60,35 +60,11 @@ public:
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
 
-class LeftSide: public Node {
-public:
-    virtual void print(ostream&, int tab) {}
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
-};
-
-class PointerLeftSide: public LeftSide {
-    LeftSide *_leftside;
-public:
-    PointerLeftSide(LeftSide *leftside): _leftside(leftside) {}
-
-    virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
-};
-
-class VarLeftSide: public LeftSide {
-    string _id;
-public:
-    VarLeftSide(string id): _id(id) {}
-
-    virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
-};
-
 class AssignSt: public Statement {
-    LeftSide *_leftside;
+    Expression *_leftside;
     Expression *_expr;
 public:
-    AssignSt(LeftSide *leftside, Expression *expr): _leftside(leftside), _expr(expr) {}
+    AssignSt(Expression *leftside, Expression *expr): _leftside(leftside), _expr(expr) {}
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
@@ -325,6 +301,30 @@ class CallFuncExp: public Expression {
 public:
     CallFuncExp(string id, vector<Expression *> args)
         : _id(id), _args(args) {}
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
+class LeftSide: public Expression {
+public:
+    virtual void print(ostream&, int tab) {}
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
+};
+
+class PointerLeftSide: public LeftSide {
+    Expression *_leftside;
+public:
+    PointerLeftSide(Expression *leftside): _leftside(leftside) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
+class VarLeftSide: public LeftSide {
+    string _id;
+public:
+    VarLeftSide(string id): _id(id) {}
+
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
