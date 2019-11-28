@@ -267,6 +267,16 @@ public:
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
 };
 
+class ArrayIndex: public Expression {
+    Expression *_pointer;
+    Expression *_index;
+public:
+    ArrayIndex(Expression *pointer, Expression *index) :_pointer(pointer), _index(index) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
 class Address: public Expression {
     string _id;
 public:

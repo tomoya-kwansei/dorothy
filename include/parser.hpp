@@ -40,6 +40,7 @@ private:
     Expression *parse_eq(vector<Token>&);
     Expression *parse_add(vector<Token>&);
     Expression *parse_mul(vector<Token>&);
+    Expression *parse_array_index(vector<Token>&);
     Expression *parse_term(vector<Token>&);
     Expression *parse_integer(vector<Token>&);
     Expression *parse_address(vector<Token>&);

@@ -37,6 +37,8 @@ Lexer::tokenize(string p, int* ppos) {
         if(tokenize_operator(p, ppos, '}'))                     continue;
         if(tokenize_operator(p, ppos, '('))                     continue;
         if(tokenize_operator(p, ppos, ')'))                     continue;
+        if(tokenize_operator(p, ppos, '['))                     continue;
+        if(tokenize_operator(p, ppos, ']'))                     continue;
         if(tokenize_id(p, ppos))                                continue;
         if(tokenize_int(p, ppos))                               continue;
         throw LexerError(format("undefined token: %c", p[*ppos]).data());
@@ -66,7 +68,7 @@ bool
 Lexer::tokenize_id(string p, int* ppos) {
     int start = *ppos;
     if(p[start] < 'A' || p[start] > 'z') return false;
-    while(p[*ppos] >= 'A' && p[*ppos] <= 'z') (*ppos)++;
+    while((p[*ppos] >= 'A' && p[*ppos] <= 'Z') || (p[*ppos] >= 'a' && p[*ppos] <= 'z')) (*ppos)++;
     string str = p.substr(start, *ppos - start);
     tokens.push_back(Token::make_id(str));
     return true;

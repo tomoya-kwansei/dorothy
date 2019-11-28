@@ -193,16 +193,28 @@ Parser::parse_add(vector<Token>& tokens) {
 }
 Expression *
 Parser::parse_mul(vector<Token>& tokens) {
-    Expression *exp = parse_term(tokens);
+    Expression *exp = parse_array_index(tokens);
     if(consume(tokens, (Token::Type)'*').type != Token::NONE) {
-        return new MulExp(exp, parse_add(tokens));
+        return new MulExp(exp, parse_mul(tokens));
     } else if(consume(tokens, (Token::Type)'/').type != Token::NONE) {
-        return new DivExp(exp, parse_add(tokens));
+        return new DivExp(exp, parse_mul(tokens));
     } else if(consume(tokens, (Token::Type)'%').type != Token::NONE) {
-        return new ModExp(exp, parse_add(tokens));
+        return new ModExp(exp, parse_mul(tokens));
     } else {
         return exp;
     }
+}
+
+Expression *
+Parser::parse_array_index(vector<Token>& tokens) {
+    Expression *pointer = parse_term(tokens);
+    if(consume(tokens, (Token::Type)'[').type != Token::NONE) {
+        Expression *index = parse_expression(tokens);
+        if(consume(tokens, (Token::Type)']').type != Token::NONE)
+            return new VarExp(new ArrayIndex(pointer, index));
+        else throw ParseError(format("expected ']'"), tokens[_pos]);
+    }
+    return pointer;
 }
 
 Expression *
@@ -213,8 +225,10 @@ Parser::parse_term(vector<Token>& tokens) {
     if((exp = parse_address(tokens))) return exp;
     if((exp = parse_variable(tokens))) return exp;
     if((exp = parse_integer(tokens))) return exp;
-    if((token = consume(tokens, Token::TK_ID)).type != Token::NONE) 
+    if((token = consume(tokens, Token::TK_ID)).type != Token::NONE) {
+        cout << "variable: " << tokens[_pos].type << " at " << _pos << endl;
         return new VarExp(new Variable(token.id));
+    }
     if(consume(tokens, (Token::Type)'(').type != Token::NONE) {
         exp = parse_expression(tokens);
         if(consume(tokens, (Token::Type)')').type != Token::NONE) {
