@@ -6,7 +6,7 @@ testFunction() {
     vector<DeclVar *> args;
     args.push_back(new DeclVar("a"));
     vector<Statement*> statements;
-    statements.push_back(new ReturnSt(new VarExp(new Variable("a"))));
+    statements.push_back(new ReturnSt(new ArrayIndex(new VarExp(new Variable("a")), new IntExp(1))));
     Block *block = new Block(statements);
 
     return new Function("test", args, block);
@@ -16,7 +16,7 @@ Function *
 mainFunction() {
     vector<DeclVar *> args;
     vector<Expression *> call_args;
-    call_args.push_back(new IntExp(3));
+    call_args.push_back(new IntExp(120));
     vector<Statement*> statements;
     statements.push_back(new DeclVarSt(new DeclVar("a")));
     statements.push_back(new AssignSt(new PointerLeftSide(new VarLeftSide("a")), new AddExp(new VarExp(new Variable("a")), new IntExp(1))));
