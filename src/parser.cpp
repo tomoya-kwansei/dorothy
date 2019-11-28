@@ -106,12 +106,12 @@ Statement *
 Parser::parse_statement(vector<Token>& tokens) {
     Statement *statement;
     if((statement = parse_declvarst(tokens))) return statement;
+    if((statement = parse_callst(tokens))) return statement;
     if((statement = parse_assignst(tokens))) return statement;
     if((statement = parse_block(tokens))) return statement;
     if((statement = parse_ifst(tokens))) return statement;
     if((statement = parse_whilest(tokens))) return statement;
     if((statement = parse_returnst(tokens))) return statement;
-    if((statement = parse_callst(tokens))) return statement;
     return NULL;
 }
 

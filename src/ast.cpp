@@ -170,6 +170,7 @@ CallFuncSt::print(ostream& os, int tab) {
     if(_args.size() > 0) {
         _args[0]->print(os, tab);
         for(int i = 1; i < _args.size(); i++) {
+            os << ", ";
             _args[i]->print(os, tab);
         }
     }
@@ -537,6 +538,7 @@ CallFuncExp::print(ostream& os, int tab) {
     if(_args.size() > 0) {
         _args[0]->print(os, tab);
         for(int i = 1; i < _args.size(); i++) {
+            os << ", ";
             _args[i]->print(os, tab);
         }
     }
