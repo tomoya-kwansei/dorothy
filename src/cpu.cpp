@@ -21,8 +21,6 @@ CPU::add(int (*func)(int, int*)) {
 
 void
 CPU::run(Code code) {
-    code.print(cout);
-    cout << endl;
     switch (code.mnemonic) {
     case Code::PUSHI:
         reg[SP_INDEX]--;
