@@ -8,7 +8,6 @@ CPU::set(vector<Code>& codes) {
 void
 CPU::run() {
     if(pc < _codes.size()) {
-        print(cout);
         run(_codes[pc]);
     } else {
         throw CantAccessToBadFieldException("プログラムカウンタがプログラム領域を逸脱しています", *this);
