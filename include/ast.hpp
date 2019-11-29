@@ -26,9 +26,19 @@ public:
 };
 
 class DeclVar: public Node {
+protected:
     string _id;
 public:
     DeclVar(string id): _id(id){}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+};
+
+class DeclArrayVar: public DeclVar {
+    int _num;
+public:
+    DeclArrayVar(string id, int num): DeclVar(id), _num(num) {}
 
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);

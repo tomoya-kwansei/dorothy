@@ -38,7 +38,20 @@ Parser::parse_declvar(vector<Token>& tokens) {
     if(consume(tokens, Token::KW_INT).type == Token::NONE) return NULL;
     Token id_token = consume(tokens, Token::TK_ID);
     if(id_token.type == Token::NONE) throw ParseError(format("position: %d", _pos), tokens[_pos]);
-    return new DeclVar(id_token.id);
+    if(consume(tokens, (Token::Type)'[').type == Token::NONE) {
+        return new DeclVar(id_token.id);
+    } else {
+        Token token;
+        if((token = consume(tokens, Token::TK_INT)).type != Token::NONE) {
+            if(consume(tokens, (Token::Type)']').type != Token::NONE) {
+                return new DeclArrayVar(id_token.id, token.int_val);
+            } else {
+                throw ParseError("expected ']'", tokens[_pos]);
+            }
+        } else {
+            throw ParseError("array variableshould be initialized with 'INT'", tokens[_pos]);
+        }
+    }
 }
 
 Block * 
