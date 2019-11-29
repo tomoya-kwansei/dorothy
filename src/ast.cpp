@@ -470,8 +470,8 @@ void
 GEExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
     _left->compile(ofs, vars, functions, offset);
     _right->compile(ofs, vars, functions, offset);
-    ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("POP 3 0"));
+    ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("GE 0 0"));
     ofs.push_back(Code::makeCode("PUSHR 2 0"));
 }
