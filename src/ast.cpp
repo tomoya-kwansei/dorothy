@@ -67,12 +67,38 @@ DeclVar::print(ostream& os, int tab) {
 void
 DeclVar::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
     if(!vars[_id]) { 
-        vars[_id] = vars.size(); 
+        vars["."]++;
+        vars[_id] = vars["."];
         ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
         ofs.push_back(Code::makeCode(Code::PUSHI, vars[_id], 0));
         ofs.push_back(Code::makeCode(Code::POP, 3, 0));
         ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
         ofs.push_back(Code::makeCode(Code::MOVE, 1, 2));
+        return;
+    }
+    throw CompileError((string("redeclared variable: ") + _id).c_str());
+}
+
+void
+DeclArrayVar::print(ostream& os, int tab) {
+    DeclVar::print(os, tab);
+    os << "[" << _num << "]";
+}
+
+void
+DeclArrayVar::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
+    if(!vars[_id]) { 
+        DeclVar::compile(ofs, vars, functions);
+        ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+        ofs.push_back(Code::makeCode(Code::PUSHI, _num, 0));
+        ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+        ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+        ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+        ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+        ofs.push_back(Code::makeCode(Code::POP, 2, 0));
+        ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
+        ofs.push_back(Code::makeCode(Code::MOVE, 1, 3));
+        vars["."] += _num;
         return;
     }
     throw CompileError((string("redeclared variable: ") + _id).c_str());
@@ -136,14 +162,14 @@ WhileSt::print(ostream& os, int tab) {
 void 
 WhileSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
     int jumpToBottom = 0;
-    int top = ofs.size() - 1;
+    int top = ofs.size() + 3;
     _cond->compile(ofs, vars, functions);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::JNE, 0, 0));
     jumpToBottom = ofs.size() - 1;
     _body->compile(ofs, vars, functions);
     ofs.push_back(Code::makeCode(Code::JMP, top, 0));
-    ofs[jumpToBottom].op1 = ofs.size() - 1 + 4;
+    ofs[jumpToBottom].op1 = ofs.size() + 3;
 }
 
 void 
@@ -170,6 +196,7 @@ CallFuncSt::print(ostream& os, int tab) {
     if(_args.size() > 0) {
         _args[0]->print(os, tab);
         for(int i = 1; i < _args.size(); i++) {
+            os << ", ";
             _args[i]->print(os, tab);
         }
     }
@@ -214,6 +241,7 @@ Function::print(ostream& os, int tab) {
 void
 Function::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions) {
     vars.clear();
+    vars["."] = 0;
     functions[_id] = ofs.size() + 3;
     ofs.push_back(Code::makeCode(Code::PUSHR, 0, 0));
     ofs.push_back(Code::makeCode(Code::MOVE, 0, 1));
@@ -537,6 +565,7 @@ CallFuncExp::print(ostream& os, int tab) {
     if(_args.size() > 0) {
         _args[0]->print(os, tab);
         for(int i = 1; i < _args.size(); i++) {
+            os << ", ";
             _args[i]->print(os, tab);
         }
     }

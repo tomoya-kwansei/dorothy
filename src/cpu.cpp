@@ -8,7 +8,6 @@ CPU::set(vector<Code>& codes) {
 void
 CPU::run() {
     if(pc < _codes.size()) {
-        print(cout);
         run(_codes[pc]);
     } else {
         throw CantAccessToBadFieldException("プログラムカウンタがプログラム領域を逸脱しています", *this);
@@ -22,8 +21,6 @@ CPU::add(int (*func)(int, int*)) {
 
 void
 CPU::run(Code code) {
-    code.print(cout);
-    cout << endl;
     switch (code.mnemonic) {
     case Code::PUSHI:
         reg[SP_INDEX]--;
