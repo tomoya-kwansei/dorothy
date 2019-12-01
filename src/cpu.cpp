@@ -124,14 +124,16 @@ CPU::run(Code code) {
 
 int
 CPU::exe() {
-    while(!_exit) run();
+    while(!_exit) {
+        run();
+    }
     return reg[2];
 }
 
 void
 CPU::print(ostream& os) {
     os << "===============" << endl;
-    for(int i = 0; i < _codes.size(); i++) {
+    for(int i = (pc > 5 ? pc - 5: 0); i < (pc > _codes.size() - 5? _codes.size() - 1: pc + 5); i++) {
         _codes[i].print(os);
         if(i == pc) {
             os << " < pc";
