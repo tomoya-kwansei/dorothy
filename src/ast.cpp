@@ -539,11 +539,15 @@ Variable::print(ostream& os, int tab) {
 
 void 
 Variable::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
-    ofs.push_back(Code::makeCode(Code::PUSHI, vars[_id], 0));
-    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
-    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
-    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+    try {
+        ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
+        ofs.push_back(Code::makeCode(Code::PUSHI, vars.at(_id), 0));
+        ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+        ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+        ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+    } catch(exception& ex) {
+        throw CompileError(format("undefined variable: %s", _id.c_str()).c_str());
+    }
 }
 
 void
