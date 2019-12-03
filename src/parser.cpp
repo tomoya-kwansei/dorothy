@@ -11,7 +11,20 @@ Parser::parse(vector<Token>& tokens) {
 
 Function * 
 Parser::parse_function(vector<Token>& tokens) {
-    if(consume(tokens, Token::KW_FUNC).type == Token::NONE) throw ParseError(format("position: %d", _pos), tokens[_pos]);
+    if(consume(tokens, Token::KW_FUNC).type == Token::NONE) {
+        if(consume(tokens, Token::KW_IMPORT).type == Token::NONE) {
+            throw ParseError(format("position: %d", _pos), tokens[_pos]);
+        } else {
+            Token id_token = consume(tokens, Token::TK_ID);
+            vector<DeclVar *> args;
+            if(id_token.type == Token::NONE) throw ParseError("expected ID", tokens[_pos]);
+            if(consume(tokens, (Token::Type)';').type != Token::NONE) {
+                return new ImportFunction(id_token.id, args);
+            } else {
+                throw ParseError("expected ';'", tokens[_pos]);
+            }
+        }
+    }
     Token id_token = consume(tokens, Token::TK_ID);
     if(id_token.type == Token::NONE) throw ParseError(format("position: %d", _pos), tokens[_pos]);
     auto declargs = parse_declargs(tokens);

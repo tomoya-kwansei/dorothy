@@ -3,18 +3,20 @@
 
 int
 print(int sp, int *_memory) {
-    cerr << _memory[sp] << endl;
-    return 3;
+    cout << _memory[sp];
+    return 0;
 }
 
 int
-multi_print(int sp, int *_memory) {
-    int times = _memory[sp];
-    int number = _memory[sp + 1];
-    for(int i = 0; i < times; i++) {
-        cerr << number << endl;
-    }
-    return 3;
+nl(int sp, int *_memory) {
+    cout << endl;
+    return 0;
+}
+
+int
+put(int sp, int *_memory) {
+    cout << (char)_memory[sp];
+    return 0;
 }
 
 int
@@ -40,7 +42,8 @@ main(int argc, char **argv) {
 
     CPU cpu;
     cpu.add(print);
-    cpu.add(multi_print);
+    cpu.add(put);
+    cpu.add(nl);
     cpu.set(codes);
     return cpu.exe();
 }
