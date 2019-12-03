@@ -45,12 +45,21 @@ public:
 };
 
 class Function: public Node {
+protected:
     string _id;
     vector<DeclVar *> _args;
     Statement *_body;
 public:
     Function(string id, vector<DeclVar *> args, Statement *body)
         : _id(id), _args(args), _body(body) {}
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
+};
+
+class ImportFunction: public Function {
+public:
+    ImportFunction(string id, vector<DeclVar *> args)
+        : Function(id, args, NULL) {}
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };

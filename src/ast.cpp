@@ -272,6 +272,42 @@ Function::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& f
 }
 
 void
+ImportFunction::print(ostream& os, int tab) {
+    Node::addTab(os, tab);
+    os << "import " << _id << endl;
+}
+
+void
+ImportFunction::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+    cerr << "**IMPORT** " << _id + ".bin" << endl;
+    ifstream ifs(_id + ".bin");
+    int of = offset + ofs.size();
+    char str[256];
+    if(ifs.fail()) {
+        throw CompileError(format("can't find 'bin' file: %s", _id.c_str()).c_str());
+    }
+    functions[_id] = ofs.size() - 1 + offset;
+    while(ifs.getline(str, 256 - 1)) {
+        char s[128];
+        int op1;
+        int op2;
+        sscanf(str, "%s %d %d", s, &op1, &op2);
+        Code code;
+        code.mnemonic = Code::getCodeFromName(s);
+        code.op1 = op1;
+        code.op2 = op2;
+        if(code.mnemonic == Code::JMP  || 
+           code.mnemonic == Code::JNE  || 
+           code.mnemonic == Code::CALL ||
+           code.mnemonic == Code::JE) {
+               code.op1 += of;
+           }
+        ofs.push_back(code);
+    }
+    ifs.close();
+}
+
+void
 ReturnSt::print(ostream& os, int tab) {
     Node::addTab(os, tab);
     os << "return ";
