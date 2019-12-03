@@ -18,6 +18,7 @@ Lexer::tokenize(string p, int* ppos) {
         if(tokenize_keyword(p, ppos, "while", Token::KW_WHILE)) continue;
         if(tokenize_keyword(p, ppos, "return", Token::KW_RETURN)) continue;
         if(tokenize_keyword(p, ppos, "func", Token::KW_FUNC))   continue;
+        if(tokenize_keyword(p, ppos, "import", Token::KW_IMPORT))   continue;
         if(tokenize_keyword(p, ppos, "<=", Token::TK_LE))       continue;
         if(tokenize_keyword(p, ppos, ">=", Token::TK_GE))       continue;
         if(tokenize_keyword(p, ppos, "==", Token::TK_EQ))       continue;

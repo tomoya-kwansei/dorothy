@@ -20,7 +20,7 @@ public:
 class Node {
 public:
     virtual void print(ostream&, int tab) = 0;
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) = 0;
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int) = 0;
 
     static void addTab(ostream&, int tab);
 };
@@ -32,7 +32,7 @@ public:
     DeclVar(string id): _id(id){}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class DeclArrayVar: public DeclVar {
@@ -41,10 +41,11 @@ public:
     DeclArrayVar(string id, int num): DeclVar(id), _num(num) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class Function: public Node {
+protected:
     string _id;
     vector<DeclVar *> _args;
     Statement *_body;
@@ -52,13 +53,21 @@ public:
     Function(string id, vector<DeclVar *> args, Statement *body)
         : _id(id), _args(args), _body(body) {}
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
+};
+
+class ImportFunction: public Function {
+public:
+    ImportFunction(string id, vector<DeclVar *> args)
+        : Function(id, args, NULL) {}
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class Statement: public Node {
 public:
     virtual void print(ostream&, int tab) {}
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int) {}
 };
 
 class DeclVarSt: public Statement {
@@ -67,7 +76,7 @@ public:
     DeclVarSt(DeclVar *decl): _decl(decl){}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class AssignSt: public Statement {
@@ -76,7 +85,7 @@ class AssignSt: public Statement {
 public:
     AssignSt(Expression *leftside, Expression *expr): _leftside(leftside), _expr(expr) {}
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class IfSt: public Statement {
@@ -87,7 +96,7 @@ public:
     IfSt(Expression *cond, Statement *truest, Statement *falsest)
         : _cond(cond), _truest(truest), _falsest(falsest) {}
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class WhileSt: public Statement {
@@ -97,7 +106,7 @@ public:
     WhileSt(Expression *cond, Statement *body)
         : _cond(cond), _body(body) {}
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class CallFuncSt: public Statement {
@@ -107,7 +116,7 @@ public:
     CallFuncSt(string id, vector<Expression *> args)
         : _id(id), _args(args) {}
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class ReturnSt: public Statement {
@@ -116,7 +125,7 @@ public:
     ReturnSt(Expression *exp)
         : _exp(exp){}
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class Block: public Statement {
@@ -125,13 +134,13 @@ public:
     Block(vector<Statement *> statements): _statements(statements) {}
     
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class Expression: public Node {
 public:
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int) {}
 };
 
 class AddExp: public Expression {
@@ -141,7 +150,7 @@ public:
     AddExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class SubExp: public Expression {
@@ -151,7 +160,7 @@ public:
     SubExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class MulExp: public Expression {
@@ -161,7 +170,7 @@ public:
     MulExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class DivExp: public Expression {
@@ -171,7 +180,7 @@ public:
     DivExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class ModExp: public Expression {
@@ -181,7 +190,7 @@ public:
     ModExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class EQExp: public Expression {
@@ -191,7 +200,7 @@ public:
     EQExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class NEExp: public Expression {
@@ -201,7 +210,7 @@ public:
     NEExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class LTExp: public Expression {
@@ -211,7 +220,7 @@ public:
     LTExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class LEExp: public Expression {
@@ -221,7 +230,7 @@ public:
     LEExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class GTExp: public Expression {
@@ -231,7 +240,7 @@ public:
     GTExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class GEExp: public Expression {
@@ -241,7 +250,7 @@ public:
     GEExp(Expression *left, Expression *right) :_left(left), _right(right) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class IntExp: public Expression {
@@ -250,7 +259,7 @@ public:
     IntExp(int int_val) :_int_val(int_val) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class ArrayIndex: public Expression {
@@ -260,7 +269,7 @@ public:
     ArrayIndex(Expression *pointer, Expression *index) :_pointer(pointer), _index(index) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class Address: public Expression {
@@ -269,13 +278,13 @@ public:
     Address(string id): _id(id) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class RightSide: public Expression {
 public:
     virtual void print(ostream&, int tab) {}
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int) {}
 };
 
 class Access: public RightSide {
@@ -284,7 +293,7 @@ public:
     Access(Expression *rightside):_rightside(rightside) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class Variable: public RightSide {
@@ -293,7 +302,7 @@ public:
     Variable(string id):_id(id) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class VarExp: public Expression {
@@ -302,7 +311,7 @@ public:
     VarExp(Expression *rightside): _rightside(rightside) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class CallFuncExp: public Expression {
@@ -312,13 +321,13 @@ public:
     CallFuncExp(string id, vector<Expression *> args)
         : _id(id), _args(args) {}
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class LeftSide: public Expression {
 public:
     virtual void print(ostream&, int tab) {}
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&) {}
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int) {}
 };
 
 class PointerLeftSide: public LeftSide {
@@ -327,7 +336,7 @@ public:
     PointerLeftSide(Expression *leftside): _leftside(leftside) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
 class VarLeftSide: public LeftSide {
@@ -336,5 +345,5 @@ public:
     VarLeftSide(string id): _id(id) {}
 
     virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };

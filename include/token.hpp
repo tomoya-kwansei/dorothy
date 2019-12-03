@@ -20,6 +20,7 @@ struct Token {
         KW_WHILE = 10,
         KW_RETURN = 11,
         KW_FUNC = 12,
+        KW_IMPORT = 13,
     } type;
 
     int     int_val;
