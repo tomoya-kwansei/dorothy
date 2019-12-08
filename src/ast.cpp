@@ -140,8 +140,9 @@ IfSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& funct
     ofs.push_back(Code::makeCode(Code::JNE, 0, 0));
     jumpToElse = ofs.size() - 1;
     _truest->compile(ofs, vars, functions, offset);
-    ofs[jumpToElse].op1 = ofs.size() + offset;
+    ofs[jumpToElse].op1 = ofs.size() + offset - 1;
     if(_falsest) {
+        ofs[jumpToElse].op1 = ofs.size() + offset;
         ofs.push_back(Code::makeCode(Code::JMP, 0, 0));
         jumpFromTrue = ofs.size() - 1;
         _falsest->compile(ofs, vars, functions, offset);
