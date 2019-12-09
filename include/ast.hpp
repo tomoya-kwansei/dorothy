@@ -109,6 +109,18 @@ public:
     virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
 };
 
+class ForSt: public Statement {
+    Statement    *_init;
+    Expression  *_cond;
+    Statement    *_proceed;
+    Statement   *_body;
+public:
+    ForSt(Statement *init, Expression *cond, Statement *proceed, Statement *body)
+        : _init(init), _cond(cond), _proceed(proceed), _body(body) {}
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, map<string, int>&, map<string, int>&, int);
+};
+
 class CallFuncSt: public Statement {
     string _id;
     vector<Expression *> _args;

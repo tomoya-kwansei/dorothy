@@ -136,6 +136,7 @@ Parser::parse_statement(vector<Token>& tokens) {
     if((statement = parse_assignst(tokens))) return statement;
     if((statement = parse_block(tokens))) return statement;
     if((statement = parse_ifst(tokens))) return statement;
+    if((statement = parse_forst(tokens))) return statement;
     if((statement = parse_whilest(tokens))) return statement;
     if((statement = parse_returnst(tokens))) return statement;
     return NULL;
@@ -168,6 +169,23 @@ Parser::parse_ifst(vector<Token>& tokens) {
         else_statement = parse_statement(tokens);
     }
     return new IfSt(exp, true_statement, else_statement);
+}
+
+Statement *
+Parser::parse_forst(vector<Token>& tokens) {
+    if(consume(tokens, Token::KW_FOR).type == Token::NONE) return NULL;
+    if(consume(tokens, (Token::Type)'(').type == Token::NONE) 
+        throw ParseError(format("expected '(' at %c", _pos), tokens[_pos]);
+    auto init = parse_statement(tokens);
+    auto cond = parse_expression(tokens);
+    if(consume(tokens, (Token::Type)';').type == Token::NONE) 
+        throw ParseError(format("expected ';' at %d", _pos), tokens[_pos]);
+    auto proceed = parse_statement(tokens);
+    if(!init || !proceed) throw ParseError(format("exprected 'expression' at %d", _pos), tokens[_pos]);
+    if(consume(tokens, (Token::Type)')').type == Token::NONE) 
+        throw ParseError(format("expected ')' at %d", _pos), tokens[_pos]);
+    Statement *body = parse_statement(tokens);
+    return new ForSt(init, cond, proceed, body);
 }
 
 Statement *

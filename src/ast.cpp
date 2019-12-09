@@ -174,6 +174,34 @@ WhileSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fu
 }
 
 void 
+ForSt::print(ostream& os, int tab) {
+    Node::addTab(os, tab);
+    os << "for(";
+    _init->print(os, tab);
+    _cond->print(os, tab);
+    os << ";";
+    _proceed->print(os, tab);
+    os << ") ";
+    _body->print(os, tab);
+    os << endl;
+}
+
+void 
+ForSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+    int jumpToBottom = 0;
+    _init->compile(ofs, vars, functions, offset);
+    int top = ofs.size() + offset - 1;
+    _cond->compile(ofs, vars, functions, offset);
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
+    ofs.push_back(Code::makeCode(Code::JNE, 0, 0));
+    jumpToBottom = ofs.size() - 1;
+    _body->compile(ofs, vars, functions, offset);
+    _proceed->compile(ofs, vars, functions, offset);
+    ofs.push_back(Code::makeCode(Code::JMP, top, 0));
+    ofs[jumpToBottom].op1 = ofs.size() - 1 + offset;
+}
+
+void 
 Block::print(ostream& os, int tab) {
     os << "{" << endl;
     for(Statement *statement: _statements) {

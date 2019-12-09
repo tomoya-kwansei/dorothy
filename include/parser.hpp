@@ -33,6 +33,7 @@ private:
     Statement *parse_assignst(vector<Token>&);
     Statement *parse_ifst(vector<Token>&);
     Statement *parse_whilest(vector<Token>&);
+    Statement *parse_forst(vector<Token>& tokens);
     Statement *parse_returnst(vector<Token>&);
     Statement *parse_callst(vector<Token>& tokens);
 
