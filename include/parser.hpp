@@ -26,11 +26,8 @@ private:
     DeclVar *parse_declvar(vector<Token>&);
     Block *parse_block(vector<Token>&);
 
-    Expression *parse_leftside(vector<Token>&);
-
     Statement *parse_statement(vector<Token>&);
     Statement *parse_declvarst(vector<Token>&);
-    Statement *parse_assignst(vector<Token>&);
     Statement *parse_ifst(vector<Token>&);
     Statement *parse_whilest(vector<Token>&);
     Statement *parse_forst(vector<Token>& tokens);
@@ -38,14 +35,14 @@ private:
     Statement *parse_callst(vector<Token>& tokens);
 
     Expression *parse_expression(vector<Token>&);
+    Expression *parse_assign(vector<Token>&);
     Expression *parse_eq(vector<Token>&);
     Expression *parse_add(vector<Token>&);
     Expression *parse_mul(vector<Token>&);
+    Expression *parse_unary(vector<Token>&);
     Expression *parse_array_index(vector<Token>&);
     Expression *parse_term(vector<Token>&);
     Expression *parse_integer(vector<Token>&);
-    Expression *parse_address(vector<Token>&);
-    Expression *parse_variable(vector<Token>&);
     Expression *parse_call(vector<Token>&);
     vector<Expression *> parse_arg(vector<Token>&);
 };
