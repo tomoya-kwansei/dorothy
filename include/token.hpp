@@ -21,6 +21,7 @@ struct Token {
         KW_RETURN = 11,
         KW_FUNC = 12,
         KW_IMPORT = 13,
+        KW_FOR,
     } type;
 
     int     int_val;

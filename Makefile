@@ -10,8 +10,6 @@ test:
 	./a.out
 	g++ --std=c++17 unittest/parser.cpp obj/*.o
 	./a.out
-	g++ --std=c++17 unittest/ast.cpp obj/*.o
-	./a.out
 	g++ --std=c++17 -o cpu unittest/cpu.cpp obj/*.o
 	g++ --std=c++17 -o compiler unittest/compile.cpp obj/*.o
 
