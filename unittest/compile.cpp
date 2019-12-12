@@ -16,11 +16,11 @@ main(int argc, char **argv) {
         auto tokens = lexer.lex(str.c_str());
         auto program = parser.parse(tokens);
 
-        map<string, int> vars;
         map<string, int> functions;
         std::vector<Code> codes;
         for(auto function: program) {
-            function->compile(codes, vars, functions, 4);
+            Env env;
+            function->compile(codes, env, functions, 4);
         }
         codes.insert(codes.begin(), Code::makeCode(Code::CALL, functions["main"], 0));
         codes.insert(codes.begin() + 1, Code::makeCode(Code::PUSHR, 2, 0));

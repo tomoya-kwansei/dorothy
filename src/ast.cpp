@@ -19,18 +19,13 @@ DeclVar::print(ostream& os, int tab) {
 }
 
 void
-DeclVar::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    if(!vars[_id]) { 
-        vars["."]++;
-        vars[_id] = vars["."];
-        ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
-        ofs.push_back(Code::makeCode(Code::PUSHI, vars[_id], 0));
-        ofs.push_back(Code::makeCode(Code::POP, 3, 0));
-        ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
-        ofs.push_back(Code::makeCode(Code::MOVE, 1, 2));
-        return;
-    }
-    throw CompileError((string("redeclared variable: ") + _id).c_str());
+DeclVar::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    env.append(_id, 1);
+    ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHI, env.find(_id)._access, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+    ofs.push_back(Code::makeCode(Code::MOVE, 1, 2));
 }
 
 void
@@ -40,22 +35,18 @@ DeclArrayVar::print(ostream& os, int tab) {
 }
 
 void
-DeclArrayVar::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    if(!vars[_id]) { 
-        DeclVar::compile(ofs, vars, functions, offset);
-        ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
-        ofs.push_back(Code::makeCode(Code::PUSHI, _num, 0));
-        ofs.push_back(Code::makeCode(Code::POP, 3, 0));
-        ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
-        ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
-        ofs.push_back(Code::makeCode(Code::POP, 3, 0));
-        ofs.push_back(Code::makeCode(Code::POP, 2, 0));
-        ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
-        ofs.push_back(Code::makeCode(Code::MOVE, 1, 3));
-        vars["."] += _num;
-        return;
-    }
-    throw CompileError((string("redeclared variable: ") + _id).c_str());
+DeclArrayVar::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    DeclVar::compile(ofs, env, functions, offset);
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHI, _num, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
+    ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
+    ofs.push_back(Code::makeCode(Code::MOVE, 1, 3));
+    env.find(_id)._size += _num;
 }
 
 void 
@@ -66,8 +57,8 @@ DeclVarSt::print(ostream& os, int tab) {
 }
 
 void 
-DeclVarSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _decl->compile(ofs, vars, functions, offset);
+DeclVarSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _decl->compile(ofs, env, functions, offset);
 }
 
 void 
@@ -86,20 +77,20 @@ IfSt::print(ostream& os, int tab) {
 }
 
 void 
-IfSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+IfSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     int jumpToElse;
     int jumpFromTrue;
-    _cond->compile(ofs, vars, functions, offset);
+    _cond->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::JNE, 0, 0));
     jumpToElse = ofs.size() - 1;
-    _truest->compile(ofs, vars, functions, offset);
+    _truest->compile(ofs, env, functions, offset);
     ofs[jumpToElse].op1 = ofs.size() + offset - 1;
     if(_falsest) {
         ofs[jumpToElse].op1 = ofs.size() + offset;
         ofs.push_back(Code::makeCode(Code::JMP, 0, 0));
         jumpFromTrue = ofs.size() - 1;
-        _falsest->compile(ofs, vars, functions, offset);
+        _falsest->compile(ofs, env, functions, offset);
         ofs[jumpFromTrue].op1 = ofs.size() - 1 + offset;
     }
 }
@@ -115,14 +106,14 @@ WhileSt::print(ostream& os, int tab) {
 }
 
 void 
-WhileSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+WhileSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     int jumpToBottom = 0;
     int top = ofs.size() - 1 + offset;
-    _cond->compile(ofs, vars, functions, offset);
+    _cond->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::JNE, 0, 0));
     jumpToBottom = ofs.size() - 1;
-    _body->compile(ofs, vars, functions, offset);
+    _body->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::JMP, top, 0));
     ofs[jumpToBottom].op1 = ofs.size() - 1 + offset;
 }
@@ -142,16 +133,16 @@ ForSt::print(ostream& os, int tab) {
 }
 
 void 
-ForSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+ForSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     int jumpToBottom = 0;
-    _init->compile(ofs, vars, functions, offset);
+    _init->compile(ofs, env, functions, offset);
     int top = ofs.size() + offset - 1;
-    _cond->compile(ofs, vars, functions, offset);
+    _cond->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::JNE, 0, 0));
     jumpToBottom = ofs.size() - 1;
-    _body->compile(ofs, vars, functions, offset);
-    _proceed->compile(ofs, vars, functions, offset);
+    _body->compile(ofs, env, functions, offset);
+    _proceed->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::JMP, top, 0));
     ofs[jumpToBottom].op1 = ofs.size() - 1 + offset;
 }
@@ -167,10 +158,12 @@ Block::print(ostream& os, int tab) {
 }
 
 void 
-Block::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+Block::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    env.staged();
     for(Statement *statement: _statements) {
-        statement->compile(ofs, vars, functions, offset);
+        statement->compile(ofs, env, functions, offset);
     }
+    env.unstaged();
 }
 
 void
@@ -188,10 +181,10 @@ CallFuncSt::print(ostream& os, int tab) {
 }
 
 void
-CallFuncSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+CallFuncSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     if(_args.size() > 0) {
         for(auto arg: _args) {
-            arg->compile(ofs, vars, functions, offset);
+            arg->compile(ofs, env, functions, offset);
         }
     }
     if(functions[_id]) {
@@ -223,15 +216,14 @@ Function::print(ostream& os, int tab) {
 }
 
 void
-Function::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    vars.clear();
-    vars["."] = 0;
+Function::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     functions[_id] = ofs.size() - 1 + offset;
     ofs.push_back(Code::makeCode(Code::PUSHR, 0, 0));
     ofs.push_back(Code::makeCode(Code::MOVE, 0, 1));
+    env.staged();
     if(_args.size() > 0) {
         for(auto arg: _args) {
-            arg->compile(ofs, vars, functions, offset);
+            arg->compile(ofs, env, functions, offset);
         }
         for(int i = 0; i < _args.size(); i++) {
             ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
@@ -246,13 +238,14 @@ Function::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& f
             ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
         }
     }
-    _body->compile(ofs, vars, functions, offset);
+    _body->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::PUSHI, 0, 0));
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::MOVE, 1, 0));
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
     ofs.push_back(Code::makeCode(Code::MOVE, 0, 3));
     ofs.push_back(Code::makeCode(Code::RET, 0, 0));
+    env.unstaged();
 }
 
 void
@@ -262,7 +255,7 @@ ImportFunction::print(ostream& os, int tab) {
 }
 
 void
-ImportFunction::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+ImportFunction::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     cerr << "**IMPORT** " << _id + ".bin" << endl;
     ifstream ifs(_id + ".bin");
     int of = offset + ofs.size();
@@ -300,8 +293,8 @@ ReturnSt::print(ostream& os, int tab) {
 }
 
 void
-ReturnSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _exp->compile(ofs, vars, functions, offset);
+ReturnSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _exp->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::MOVE, 1, 0));
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
@@ -317,8 +310,8 @@ ExpressionSt::print(ostream& os, int tab) {
 }
 
 void
-ExpressionSt::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _exp->compile(ofs, vars, functions, offset);
+ExpressionSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _exp->compile(ofs, env, functions, offset);
 }
 
 void 
@@ -329,16 +322,16 @@ Assign::print(ostream& os, int tab) {
 }
 
 void 
-Assign::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _leftside->lcompile(ofs, vars, functions, offset);
-    _expr->compile(ofs, vars, functions, offset);
+Assign::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _leftside->lcompile(ofs, env, functions, offset);
+    _expr->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
 }
 
 void 
-Assign::lcompile(vector<Code>&, map<string, int>&, map<string, int>&, int) {
+Assign::lcompile(vector<Code>&, Env&, map<string, int>&, int) {
     print(cerr, 0);
     throw CompileError("can't compile as left side");
 }
@@ -351,9 +344,9 @@ AddExp::print(ostream& os, int tab) {
 }
 
 void
-AddExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+AddExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("ADD 0 0"));
@@ -361,9 +354,9 @@ AddExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fun
 }
 
 void 
-AddExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+AddExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("ADD 0 0"));
@@ -378,9 +371,9 @@ SubExp::print(ostream& os, int tab) {
 }
 
 void
-SubExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+SubExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("SUB 0 0"));
@@ -388,9 +381,9 @@ SubExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fun
 }
 
 void 
-SubExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+SubExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("SUB 0 0"));
@@ -405,9 +398,9 @@ MulExp::print(ostream& os, int tab) {
 }
 
 void
-MulExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+MulExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
     ofs.push_back(Code::makeCode(Code::MUL, 0, 0));
@@ -415,9 +408,9 @@ MulExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fun
 }
 
 void 
-MulExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+MulExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("MUL 0 0"));
@@ -432,9 +425,9 @@ DivExp::print(ostream& os, int tab) {
 }
 
 void
-DivExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+DivExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("DIV 0 0"));
@@ -442,9 +435,9 @@ DivExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fun
 }
 
 void 
-DivExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+DivExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("DIV 0 0"));
@@ -459,9 +452,9 @@ ModExp::print(ostream& os, int tab) {
 }
 
 void
-ModExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+ModExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("MOD 0 0"));
@@ -469,9 +462,9 @@ ModExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& fun
 }
 
 void 
-ModExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+ModExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("MOD 0 0"));
@@ -486,9 +479,9 @@ EQExp::print(ostream& os, int tab) {
 }
 
 void
-EQExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+EQExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("EQ 0 0"));
@@ -496,9 +489,9 @@ EQExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& func
 }
 
 void 
-EQExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+EQExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("EQ 0 0"));
@@ -513,9 +506,9 @@ NEExp::print(ostream& os, int tab) {
 }
 
 void
-NEExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+NEExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("NE 0 0"));
@@ -523,9 +516,9 @@ NEExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& func
 }
 
 void 
-NEExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+NEExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("NE 0 0"));
@@ -540,9 +533,9 @@ LTExp::print(ostream& os, int tab) {
 }
 
 void
-LTExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+LTExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("LT 0 0"));
@@ -550,9 +543,9 @@ LTExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& func
 }
 
 void 
-LTExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+LTExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("LT 0 0"));
@@ -567,9 +560,9 @@ LEExp::print(ostream& os, int tab) {
 }
 
 void
-LEExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+LEExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("LE 0 0"));
@@ -577,9 +570,9 @@ LEExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& func
 }
 
 void 
-LEExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+LEExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("ADD 0 0"));
@@ -594,9 +587,9 @@ GTExp::print(ostream& os, int tab) {
 }
 
 void
-GTExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+GTExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("GT 0 0"));
@@ -604,9 +597,9 @@ GTExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& func
 }
 
 void 
-GTExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+GTExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("GT 0 0"));
@@ -621,9 +614,9 @@ GEExp::print(ostream& os, int tab) {
 }
 
 void
-GEExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->compile(ofs, vars, functions, offset);
-    _right->compile(ofs, vars, functions, offset);
+GEExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _left->compile(ofs, env, functions, offset);
+    _right->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode("POP 3 0"));
     ofs.push_back(Code::makeCode("POP 2 0"));
     ofs.push_back(Code::makeCode("GE 0 0"));
@@ -631,9 +624,9 @@ GEExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& func
 }
 
 void 
-GEExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _left->lcompile(codes, vars, functions, offset);
-    _right->lcompile(codes, vars, functions, offset);
+GEExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _left->lcompile(codes, env, functions, offset);
+    _right->lcompile(codes, env, functions, offset);
     codes.push_back(Code::makeCode("POP 3 0"));
     codes.push_back(Code::makeCode("POP 2 0"));
     codes.push_back(Code::makeCode("GE 0 0"));
@@ -646,12 +639,12 @@ IntExp::print(ostream& os, int tab) {
 }
 
 void
-IntExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+IntExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     ofs.push_back(Code::makeCode("PUSHI " + to_string(_int_val) + " 0"));
 }
 
 void 
-IntExp::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
+IntExp::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
     codes.push_back(Code::makeCode(Code::PUSHI, _int_val, 0));
 }
 
@@ -664,9 +657,9 @@ ArrayIndex::print(ostream& os, int tab) {
 }
 
 void
-ArrayIndex::compile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _pointer->compile(codes, vars, functions, offset);
-    _index->compile(codes, vars, functions, offset);
+ArrayIndex::compile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
+    _pointer->compile(codes, env, functions, offset);
+    _index->compile(codes, env, functions, offset);
     codes.push_back(Code::makeCode(Code::POP, 3, 0));
     codes.push_back(Code::makeCode(Code::POP, 2, 0));
     codes.push_back(Code::makeCode(Code::ADD, 0, 0));
@@ -675,9 +668,9 @@ ArrayIndex::compile(vector<Code>& codes, map<string, int>& vars, map<string, int
 }
 
 void
-ArrayIndex::lcompile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _pointer->compile(ofs, vars, functions, offset);
-    _index->compile(ofs, vars, functions, offset);
+ArrayIndex::lcompile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _pointer->compile(ofs, env, functions, offset);
+    _index->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::ADD, 0, 0));
@@ -691,12 +684,12 @@ Address::print(ostream& os, int tab) {
 }
 
 void 
-Address::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _exp->lcompile(ofs, vars, functions, offset);
+Address::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _exp->lcompile(ofs, env, functions, offset);
 }
 
 void 
-Address::lcompile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+Address::lcompile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     print(cerr, 0);
     throw CompileError("can't use as left side");
 }
@@ -708,16 +701,16 @@ Access::print(ostream& os, int tab) {
 }
 
 void 
-Access::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _rightside->compile(ofs, vars, functions, offset);
+Access::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _rightside->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::LOAD, 2, 2));
     ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
 }
 
 void 
-Access::lcompile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
-    _rightside->lcompile(ofs, vars, functions, offset);
+Access::lcompile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    _rightside->lcompile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::LOAD, 2, 2));
     ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
@@ -729,10 +722,10 @@ Variable::print(ostream& os, int tab) {
 }
 
 void 
-Variable::compile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
+Variable::compile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
     try {
         codes.push_back(Code::makeCode(Code::MOVE, 2, 0));
-        codes.push_back(Code::makeCode(Code::PUSHI, vars.at(_id), 0));
+        codes.push_back(Code::makeCode(Code::PUSHI, env.find(_id)._access, 0));
         codes.push_back(Code::makeCode(Code::POP, 3, 0));
         codes.push_back(Code::makeCode(Code::SUB, 0, 0));
         codes.push_back(Code::makeCode(Code::LOAD, 2, 2));
@@ -743,10 +736,10 @@ Variable::compile(vector<Code>& codes, map<string, int>& vars, map<string, int>&
 }
 
 void 
-Variable::lcompile(vector<Code>& codes, map<string, int>& vars, map<string, int>& functions, int offset) {
+Variable::lcompile(vector<Code>& codes, Env& env, map<string, int>& functions, int offset) {
     try {
         codes.push_back(Code::makeCode(Code::MOVE, 2, 0));
-        codes.push_back(Code::makeCode(Code::PUSHI, vars.at(_id), 0));
+        codes.push_back(Code::makeCode(Code::PUSHI, env.find(_id)._access, 0));
         codes.push_back(Code::makeCode(Code::POP, 3, 0));
         codes.push_back(Code::makeCode(Code::SUB, 0, 0));
         codes.push_back(Code::makeCode(Code::PUSHR, 2, 0));
@@ -769,10 +762,10 @@ CallFuncExp::print(ostream& os, int tab) {
 }
 
 void
-CallFuncExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+CallFuncExp::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     if(_args.size() > 0) {
         for(auto arg: _args) {
-            arg->compile(ofs, vars, functions, offset);
+            arg->compile(ofs, env, functions, offset);
         }
     }
     if(functions[_id]) {
@@ -789,7 +782,7 @@ CallFuncExp::compile(vector<Code>& ofs, map<string, int>& vars, map<string, int>
 }
 
 void
-CallFuncExp::lcompile(vector<Code>& ofs, map<string, int>& vars, map<string, int>& functions, int offset) {
+CallFuncExp::lcompile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     print(cerr, 0);
     throw CompileError("can't use as left side");
 }
