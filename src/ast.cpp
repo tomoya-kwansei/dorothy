@@ -26,6 +26,18 @@ DeclVar::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int o
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
     ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
     ofs.push_back(Code::makeCode(Code::MOVE, 1, 2));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+}
+
+void
+DeclVar::lcompile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    env.append(_id, 1);
+    ofs.push_back(Code::makeCode(Code::MOVE, 2, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHI, env.find(_id)._access, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+    ofs.push_back(Code::makeCode(Code::MOVE, 1, 2));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
 }
 
 void
@@ -47,6 +59,23 @@ DeclArrayVar::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, 
     ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
     ofs.push_back(Code::makeCode(Code::MOVE, 1, 3));
     env.find(_id)._size += _num;
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+}
+
+void
+DeclArrayVar::lcompile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    DeclVar::lcompile(ofs, env, functions, offset);
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHI, _num, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::SUB, 0, 0));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 3, 0));
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
+    ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
+    ofs.push_back(Code::makeCode(Code::MOVE, 1, 3));
+    env.find(_id)._size += _num;
+    ofs.push_back(Code::makeCode(Code::PUSHR, 2, 0));
 }
 
 void 
@@ -59,6 +88,7 @@ DeclVarSt::print(ostream& os, int tab) {
 void 
 DeclVarSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     _decl->compile(ofs, env, functions, offset);
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
 }
 
 void 
@@ -134,6 +164,7 @@ ForSt::print(ostream& os, int tab) {
 
 void 
 ForSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
+    env.staged();
     int jumpToBottom = 0;
     _init->compile(ofs, env, functions, offset);
     int top = ofs.size() + offset - 1;
@@ -145,6 +176,7 @@ ForSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int off
     _proceed->compile(ofs, env, functions, offset);
     ofs.push_back(Code::makeCode(Code::JMP, top, 0));
     ofs[jumpToBottom].op1 = ofs.size() - 1 + offset;
+    env.unstaged();
 }
 
 void 
@@ -312,6 +344,7 @@ ExpressionSt::print(ostream& os, int tab) {
 void
 ExpressionSt::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int offset) {
     _exp->compile(ofs, env, functions, offset);
+    ofs.push_back(Code::makeCode(Code::POP, 2, 0));
 }
 
 void 
@@ -328,6 +361,7 @@ Assign::compile(vector<Code>& ofs, Env& env, map<string, int>& functions, int of
     ofs.push_back(Code::makeCode(Code::POP, 3, 0));
     ofs.push_back(Code::makeCode(Code::POP, 2, 0));
     ofs.push_back(Code::makeCode(Code::STORE, 2, 3));
+    ofs.push_back(Code::makeCode(Code::PUSHR, 3, 0));
 }
 
 void 

@@ -12,6 +12,7 @@ using namespace std;
 
 class Expression;
 class Statement;
+class DeclVar;
 
 class Node {
 public:
@@ -19,25 +20,6 @@ public:
     virtual void compile(vector<Code>&, Env&, map<string, int>&, int) = 0;
 
     static void addTab(ostream&, int tab);
-};
-
-class DeclVar: public Node {
-protected:
-    string _id;
-public:
-    DeclVar(string id): _id(id){}
-
-    virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, Env&, map<string, int>&, int);
-};
-
-class DeclArrayVar: public DeclVar {
-    int _num;
-public:
-    DeclArrayVar(string id, int num): DeclVar(id), _num(num) {}
-
-    virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, Env&, map<string, int>&, int);
 };
 
 class Function: public Node {
@@ -64,15 +46,6 @@ class Statement: public Node {
 public:
     virtual void print(ostream&, int tab) {}
     virtual void compile(vector<Code>&, Env&, map<string, int>&, int) {}
-};
-
-class DeclVarSt: public Statement {
-    DeclVar *_decl;
-public:
-    DeclVarSt(DeclVar *decl): _decl(decl){}
-
-    virtual void print(ostream&, int tab);
-    virtual void compile(vector<Code>&, Env&, map<string, int>&, int);
 };
 
 class IfSt: public Statement {
@@ -333,6 +306,7 @@ public:
 };
 
 class Variable: public Expression {
+protected:
     string _id;
 public:
     Variable(string id):_id(id) {}
@@ -340,6 +314,34 @@ public:
     virtual void print(ostream&, int tab);
     virtual void compile(vector<Code>&, Env&, map<string, int>&, int);
     virtual void lcompile(vector<Code>&, Env&, map<string, int>&, int);
+};
+
+class DeclVar: public Variable {
+public:
+    DeclVar(string id): Variable(id){}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, Env&, map<string, int>&, int);
+    virtual void lcompile(vector<Code>&, Env&, map<string, int>&, int);
+};
+
+class DeclArrayVar: public DeclVar {
+    int _num;
+public:
+    DeclArrayVar(string id, int num): DeclVar(id), _num(num) {}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, Env&, map<string, int>&, int);
+    virtual void lcompile(vector<Code>&, Env&, map<string, int>&, int);
+};
+
+class DeclVarSt: public Statement {
+    DeclVar *_decl;
+public:
+    DeclVarSt(DeclVar *decl): _decl(decl){}
+
+    virtual void print(ostream&, int tab);
+    virtual void compile(vector<Code>&, Env&, map<string, int>&, int);
 };
 
 class CallFuncExp: public Expression {

@@ -99,7 +99,6 @@ Statement *
 Parser::parse_statement(vector<Token>& tokens) {
     Statement *statement;
     Expression *exp;
-    if((statement = parse_declvarst(tokens))) return statement;
     if((statement = parse_block(tokens))) return statement;
     if((statement = parse_ifst(tokens))) return statement;
     if((statement = parse_forst(tokens))) return statement;
@@ -264,6 +263,7 @@ Parser::parse_term(vector<Token>& tokens) {
     Expression *exp;
     if((exp = parse_call(tokens))) return exp;
     if((exp = parse_integer(tokens))) return exp;
+    if((exp = parse_declvar(tokens))) return exp;
     if((token = consume(tokens, Token::TK_ID)).type != Token::NONE) {
         return new Variable(token.id);
     }
