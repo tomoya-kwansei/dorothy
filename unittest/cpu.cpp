@@ -23,20 +23,12 @@ int
 main(int argc, char **argv) {
     int index = 1;
     vector<Code> codes;
-    ifstream ifs(argv[1]);
+    ifstream ifs(argv[1], ios::binary);
     char str[256];
-    while(ifs.getline(str, 256 - 1)) {
-        char s[128];
-        int op1;
-        int op2;
-        sscanf(str, "%s %d %d", s, &op1, &op2);
+    while(!ifs.eof()) {
         Code code;
-        code.mnemonic = Code::getCodeFromName(s);
-        code.index = index;
-        code.op1 = op1;
-        code.op2 = op2;
+        ifs.read((char*)&code, sizeof(Code));
         codes.push_back(code);
-        index++;
     }
     ifs.close();
 

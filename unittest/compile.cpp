@@ -29,11 +29,8 @@ main(int argc, char **argv) {
         for(auto function: program) {
             function->print(cout, 0);
         }
-        ofstream ofs(format("./%s.bin", argv[2]).c_str());
-        for(auto code: codes) {
-            code.print(ofs);
-            ofs << endl;
-        }
+        ofstream ofs(format("./%s.bin", argv[2], ios::binary).c_str());
+        for(auto code: codes) { ofs.write((char*)&code, sizeof(Code)); }
         ofs.close();
     }
     return 0;
